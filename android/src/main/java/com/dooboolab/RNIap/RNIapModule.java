@@ -513,6 +513,13 @@ public class RNIapModule extends ReactContextBaseJavaModule implements Purchases
 
   @ReactMethod
   public void consumeProduct(final String token, final String developerPayLoad, final Promise promise) {
+    if (billingClient == null) {
+      if (promise != null) {
+        promise.reject("consumeProduct", "billingClient is null");
+      }
+      return;
+    }
+
     final ConsumeParams params = ConsumeParams.newBuilder()
         .setPurchaseToken(token)
         .setDeveloperPayload(developerPayLoad)
