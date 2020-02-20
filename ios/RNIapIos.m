@@ -129,6 +129,28 @@ RCT_EXPORT_METHOD(getItems:(NSArray*)skus
     [productsRequest start];
 }
 
+RCT_EXPORT_METHOD(getUnfinishedPurchases:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject) {
+    @try {
+        NSMutableArray *purchases = [NSMutableArray array];
+        NSArray *pendingTrans = [[SKPaymentQueue defaultQueue] transactions];
+
+        for (SKPaymentTransaction *transaction in pendingTrans) {
+            if (transaction.transactionState == SKPaymentTransactionStatePurchased) {
+                [self getPurchaseData:transaction withBlock:^(NSDictionary *restored) {
+                    [purchases addObject:restored];
+                    [[SKPaymentQueue defaultQueue] finishTransaction:transaction];
+                }];
+            }
+        }
+
+        resolve(purchases);
+    }
+    @catch (NSException * e) {
+        reject(@"E_DEVELOPER_ERROR", @"Invalid purchases.", nil);
+    }
+}
+
 RCT_EXPORT_METHOD(getAvailableItems:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject) {
     [self addPromiseForKey:@"availableItems" resolve:resolve reject:reject];

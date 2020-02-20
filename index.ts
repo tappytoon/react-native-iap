@@ -254,6 +254,18 @@ InAppPurchase | SubscriptionPurchase
   })();
 
 /**
+ * Get all unfinished purchases. (iOS Only)
+ * @returns {Promise<InAppPurchase[]>}
+ */
+export const getUnfinishedPurchases = (): Promise<InAppPurchase[]> => Platform.select({
+  ios: async () => {
+    checkNativeiOSAvailable();
+    return RNIapIos.getUnfinishedPurchases();
+  },
+  android: async () => [],
+})();
+
+/**
  * Get all purchases made by the user (either non-consumable, or haven't been consumed yet)
  * @returns {Promise<(InAppPurchase | SubscriptionPurchase)[]>}
  */
@@ -701,6 +713,7 @@ const iapUtils = {
   getPurchaseHistory,
   getAvailablePurchases,
   getPendingPurchasesIOS,
+  getUnfinishedPurchases,
   consumeAllItemsAndroid,
   clearProductsIOS,
   clearTransactionIOS,
