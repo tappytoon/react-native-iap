@@ -52,7 +52,7 @@ public class RNIapModule extends ReactContextBaseJavaModule implements Purchases
   private ReactContext reactContext;
   private BillingClient billingClient;
 
-  private List<SkuDetails> skus;
+  private final List<SkuDetails> skus;
 
   private LifecycleEventListener lifecycleEventListener = new LifecycleEventListener() {
     @Override
@@ -84,6 +84,30 @@ public class RNIapModule extends ReactContextBaseJavaModule implements Purchases
   @Override
   public String getName() {
     return "RNIapModule";
+  }
+
+  private synchronized void addSkuDetailsList(List<SkuDetails> skuDetailsList) {
+    for (SkuDetails skuDetails : skuDetailsList) {
+      addSkuDetails(skuDetails);
+    }
+  }
+
+  private void addSkuDetails(SkuDetails skuDetails) {
+    final int index = indexOfSkuDetails(skuDetails);
+    if (index >= 0) {
+      skus.set(index, skuDetails);
+    } else {
+      skus.add(skuDetails);
+    }
+  }
+
+  private int indexOfSkuDetails(SkuDetails skuDetails) {
+    for (SkuDetails sku : skus) {
+      if (sku.getSku().equals(skuDetails.getSku())) {
+        return skus.indexOf(sku);
+      }
+    }
+    return -1;
   }
 
   private void ensureConnection (final Promise promise, final Runnable callback) {
@@ -246,11 +270,8 @@ public class RNIapModule extends ReactContextBaseJavaModule implements Purchases
               return;
             }
 
-            for (SkuDetails sku : skuDetailsList) {
-              if (!skus.contains(sku)) {
-                skus.add(sku);
-              }
-            }
+            addSkuDetailsList(skuDetailsList);
+
             WritableNativeArray items = new WritableNativeArray();
 
             for (SkuDetails skuDetails : skuDetailsList) {
